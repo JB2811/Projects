@@ -1,0 +1,19 @@
+<html>
+ <head>
+ </head>
+ <body><center>
+   <h2>Choose a level</h2> 
+   <form method="post" action="/easy/">
+    {% csrf_token %}
+    <p><input type="submit" value="EASY"></p>
+   </form>
+   <form method="post" action="/medium/">
+    {% csrf_token %}
+    <p><input type="submit" value="MEDIUM"></p>
+   </form>
+   <form method="post" action="/hard/">
+    {% csrf_token %}
+    <p><input type="submit" value="HARD"></p>
+   </form>
+ </center></body>
+</html>

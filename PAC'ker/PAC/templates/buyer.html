@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous" />
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+
+<style>
+
+.th1 {
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+.icon {
+    height: 50px;
+    width: 70px;
+}
+
+.hh {
+    font-size: 30px;
+    font-weight: 700;
+    font-family: "Roboto";
+}
+
+.bak1 {
+    border-radius: 20px;
+    margin: 10px;
+    padding-bottom: 10px;
+}
+
+.icon1 {
+    background-size: cover;
+
+}
+
+.hhh {
+    font-size: 30px;
+    font-weight: 400;
+    font-family: "Roboto";
+}
+
+.ff {
+    color: white;
+    padding: 5px;
+    border-color: white;
+    border-width: 4px;
+    border-radius: 4px;
+    border-style: solid;
+    width: 110px;
+}
+
+.icon2 {
+    background-size: cover;
+}
+
+.in1 {
+    border-width: 10px;
+    margin: 5px;
+
+}
+
+.bak11 {
+    border-radius: 15px;
+
+}
+
+.doc1 {
+    height: 80vh;
+    padding: 30px;
+    margin: 20px;
+}
+
+.rr {
+    background-color: #BFECEF;
+}
+
+.open {
+    color: #1AF428;
+    font-family: "Roboto";
+}
+
+.close1 {
+    color: #FA031D;
+    font-family: "Roboto";
+}
+
+.wbgg {
+    background-image: url("https://images.pexels.com/photos/129731/pexels-photo-129731.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1");
+    background-size: cover;
+    height: 100vh;
+    padding: 70px;
+}
+
+.wcard {
+    border-width: 4px;
+    border-style: solid;
+    border-color: black;
+    padding: 20px;
+    background-color: #FAFAD2;
+}
+
+.wbb {
+    width: 100px;
+    margin: 10px;
+}
+.heading
+{
+	font-weight:bold;
+	font-family:Serif;
+	font-size:60px;
+	text-align :center ;
+}
+</style>
+
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light  mb-3">
+        <a class="navbar-brand" href="#">Navbar</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Link</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Dropdown
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="#">Action</a>
+                        <a class="dropdown-item" href="#">Another action</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#">Something else here</a>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+                </li>
+            </ul>
+            <form class="form-inline my-2 my-lg-0">
+                <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+            </form>
+        </div>
+    </nav>
+    <div id="sectionhome">
+       
+    </div>
+    <script type="text/javascript">
+     pro={{array|safe}};
+     sn={{array2|safe}};
+     let leng=sn.length;
+     for(var i=0;i<leng-1;i++)
+     {
+	let div=document.createElement("div");
+	div.setAttribute("class","shadow-lg bak1 mt-3 text-center");
+	let img=document.createElement("img");
+	img.setAttribute("class","w-100 icon2");
+	img.src="";
+	img.alt="sample image";
+	let head=document.createElement("h1");
+	head.setAttribute("class","heading");
+	head.textContent=sn[i][0];
+	let table=document.createElement("table");
+	table.setAttribute("class","text-center");
+	table.setAttribute("width","400");
+	let tr1=document.createElement("tr");
+	let thead1=document.createElement("th");
+	thead1.textContent="S.No";
+	let thead2=document.createElement("th");
+	thead2.textContent="Product Name";
+	let thead3=document.createElement("th");
+	let center =document.createElement("center");
+	thead3.textContent="Quantity";
+	tr1.appendChild(thead1);
+	tr1.appendChild(thead2);
+	tr1.appendChild(thead3);
+	let ppp=pro[i].length;
+	table.appendChild(tr1);
+	for(let j=0;j<ppp;j++)
+	{
+		let tr2=document.createElement("tr");
+		let td1=document.createElement("td");
+		td1.textContent=pro[i][j][0];
+	    let td2=document.createElement("td");
+		td2.textContent=pro[i][j][1];
+		let td3=document.createElement("td");
+		td3.textContent=pro[i][j][2];
+		tr2.appendChild(td1);
+		tr2.appendChild(td2);
+		tr2.appendChild(td3);
+		table.appendChild(tr2);
+	}
+	let sectionhome=document.getElementById("sectionhome");
+	sectionhome.appendChild(div);
+	div.appendChild(img);
+	div.appendChild(head);
+	center.appendChild(table);
+	div.appendChild(center);     }                                                                                                                                                                                                                                                                                                                      
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,147 @@
+<html>
+    <head>
+        <title>LoveSudoku</title>
+        <style>
+          table{ border-collapse:collapse;
+                 border:2px solid black;
+             background-color:MintCream;}
+          td{ padding-top: 15px;
+              padding-bottom: 15px;
+              padding-left: 18px;
+              padding-right: 18px;
+              font-size: 25px;
+           border:2px solid black;}
+           input[type=text] { border: 1px solid Black;
+	                     background-color:#F5FFFA;}
+        </style>
+    </head>
+    <body bgcolor=#1B2631><center>
+    
+    <h2 style='background-color:darkgoldenrod'><center>TIMED GAME</center></h2>
+  
+    <form action="/solvefrnd/" method="post" id="form" name="form">
+        {% csrf_token %}
+        <p><center><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;border-top:5px solid black;" name="00" id="00" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-top:5px solid black;" name="01" id="01" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-top:5px solid black;" name="02" id="02" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;border-top:5px solid black;" name="03" id="03" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-top:5px solid black;" name="04" id="04" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-top:5px solid black;" name="05" id="05" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;border-top:5px solid black;" name="06" id="06" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-top:5px solid black;" name="07" id="07" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-right:5px solid black;border-top:5px solid black;" name="08" id="08" maxlength=1><br>
+            <input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;" name="10" id="10" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="11" id="11" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="12" id="12" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;" name="13" id="13" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="14" id="14" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="15" id="15" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;" name="16" id="16" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="17" id="17" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-right:5px solid black;" name="18" id="18" maxlength=1><br>
+            <input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;" name="20" id="20" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="21" id="21" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="22" id="22" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;" name="23" id="23" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="24" id="24" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="25" id="25" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;" name="26" id="26" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="27" id="27" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-right:5px solid black;" name="28" id="28" maxlength=1><br>
+            <input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;border-top:5px solid black;" name="30" id="30" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-top:5px solid black;" name="31" id="31" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-top:5px solid black;" name="32" id="32" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;border-top:5px solid black;" name="33" id="33" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-top:5px solid black;" name="34" id="34" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-top:5px solid black;" name="35" id="35" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;border-top:5px solid black;" name="36" id="36" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-top:5px solid black;" name="37" id="37" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-right:5px solid black;border-top:5px solid black;" name="38" id="38" maxlength=1><br>
+            <input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;" name="40" id="40" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="41" id="41" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="42" id="42" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;" name="43" id="43" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="44" id="44" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="45" id="45" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;" name="46" id="46" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="47" id="47" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-right:5px solid black;" name="48" id="48" maxlength=1><br>
+            <input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;" name="50" id="50" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="51" id="51" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="52" id="52" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;" name="53" id="53" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="54" id="54" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="55" id="55" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;" name="56" id="56" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="57" id="57" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-right:5px solid black;" name="58" id="58" maxlength=1><br>
+            <input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;border-top:5px solid black;" name="60" id="60" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-top:5px solid black;" name="61" id="61" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-top:5px solid black;" name="62" id="62" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;border-top:5px solid black;" name="63" id="63" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-top:5px solid black;" name="64" id="64" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-top:5px solid black;" name="65" id="65" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;border-top:5px solid black;" name="66" id="66" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-top:5px solid black;" name="67" id="67" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-right:5px solid black;border-top:5px solid black;" name="68" id="68" maxlength=1><br>
+            <input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;" name="70" id="70" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="71" id="71" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="72" id="72" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;" name="73" id="73" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="74" id="74" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="75" id="75" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;" name="76" id="76" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center" name="77" id="77" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-right:5px solid black;" name="78" id="78" maxlength=1><br>
+            <input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;border-bottom:5px solid black;" name="80" id="80" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-bottom:5px solid black;" name="81" id="81" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-bottom:5px solid black;" name="82" id="82" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;border-bottom:5px solid black;" name="83" id="83" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-bottom:5px solid black;" name="84" id="84" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-bottom:5px solid black;" name="85" id="85" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-left:5px solid black;border-bottom:5px solid black;" name="86" id="86" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-bottom:5px solid black;" name="87" id="87" maxlength=1><input type="text" size="1" style="height:40px;width:40px;font-size:30px;text-align:center;border-right:5px solid black;border-bottom:5px solid black;" name="88" id="88" maxlength=1><br>
+            
+            <p style='color:white'>TIMER : <b id="h">00</b>&nbsp:&nbsp<b id="m">00</b>&nbsp:&nbsp<b id="s">00</b></p>
+            
+            <p><input type="button" value="start" onclick="start()">&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<input type="button" value="pause/resume" onclick="presume()">&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</nbsp><input type="button" value="solve" id="solve" name="solve">&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</nbsp><input type="button" value="reset" id="reset"></p>
+
+            <p id="result"></p>
+    </form>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    
+    <script>
+     game={{game|safe}};
+     i=0;
+     var ans,timer;
+     while(i<game.length)
+     { x=document.getElementById(String(game[i][0])+String(game[i][1]));
+       x.value=game[i][2];
+       x.setAttribute("readonly",true);
+       i++;}
+     f=document.getElementById("form");
+     $(":text").on("input", function() 
+                            { i=parseInt(this.id);
+                              if(this.value=="")
+                              { this.style.backgroundColor="MintCream";}
+                              else if(ans[parseInt(i/10)][i%10]!=parseInt(this.value))
+                              { this.style.backgroundColor="red";}
+                              else
+                              { this.style.backgroundColor="MintCream";}});
+     window.onload=function()
+                   { var form=$("#form");
+                     var actionurl=form.attr("action");
+                     $.ajax({ url:actionurl,data:form.serialize(),type:"POST",
+                     success:function(r)
+                             { ans=r['row'];}});
+                     var elements=document.getElementById("form").elements;
+                     var j=0;
+                     while(j<elements.length)
+                     { if(elements[j].value!="start")
+                       { elements[j].disabled=true;}
+                       j++;}}
+     function start()
+     {  var elements=document.getElementById("form").elements;
+        var j=0;
+        while(j<elements.length)
+        { if(elements[j].value!="start")
+          { elements[j].disabled=false;}
+          else
+          { elements[j].disabled=true;}
+          j++;}
+        s=document.getElementById("s");
+        m=document.getElementById("m");
+        h=document.getElementById("h");
+        timer=setInterval(    function()
+                              { s.innerHTML=parseInt(s.innerHTML)+1;
+                                if(s.innerHTML>59)
+                                { s.innerHTML=0;
+                                  m.innerHTML=parseInt(m.innerHTML)+1;}
+                                if(m.innerHTML>59)
+                                { m.innerHTML=0;
+                                  h.innerHTML=parseInt(h.innerHTML)+1;}},1000);}
+     function presume()
+     { s=document.getElementById("s");
+       m=document.getElementById("m");
+       h=document.getElementById("h");
+       var elements=document.getElementById("form").elements;
+       var j=0;
+       if(document.getElementById("01").disabled==false)
+       { clearInterval(timer);
+         j=0;
+         while(j<elements.length)
+         { if(elements[j].value=="pause/resume")
+           { elements[j].disabled=false;}
+           else
+           { elements[j].disabled=true;}
+           j++;}}
+       else
+       { j=0;
+         while(j<elements.length)
+         { if(elements[j].value!="start")
+           { elements[j].disabled=false;}
+           else
+           { elements[j].disabled=true;}
+           j++;}
+         timer=setInterval(   function()
+                              { s.innerHTML=parseInt(s.innerHTML)+1;
+                                if(s.innerHTML>59)
+                                { s.innerHTML=0;
+                                  m.innerHTML=parseInt(m.innerHTML)+1;}
+                                if(m.innerHTML>59)
+                                { m.innerHTML=0;
+                                  h.innerHTML=parseInt(h.innerHTML)+1;}},1000);}}
+     function resf()
+     { var elements=document.getElementById("form").elements;
+       var j=0;
+       while(j<elements.length)
+       { if(elements[j].type=="text" && !(elements[j].hasAttribute('readonly')))
+         { elements[j].value="";
+           elements[j].style.backgroundColor='MintCream';}
+           j++;}
+       document.getElementById("s").innerHTML="00";
+       document.getElementById("m").innerHTML="00";
+       document.getElementById("h").innerHTML="00";}
+     
+     function solve()
+     {  var x='<p><br><font style="color:white">SOLUTION:-</font></p><p><table border="1"><tr style="border-top:5px solid black;border-left:5px solid black;"><td id="t00"></td><td id="t01"></td><td id="t02"></td><td id="t03" style="border-left:5px solid black;"></td><td id="t04"></td><td id="t05"></td><td id="t06" style="border-left:5px solid black;"></td><td id="t07"></td><td id="t08" style="border-right:5px solid black;"></td></tr><tr><td id="t10" style="border-left:5px solid black;"></td><td id="t11"></td><td id="t12"></td><td id="t13" style="border-left:5px solid black;"></td><td id="t14"></td><td id="t15"></td><td id="t16" style="border-left:5px solid black;"></td><td id="t17"></td><td id="t18" style="border-right:5px solid black;"></td></tr><tr><td id="t20" style="border-left:5px solid black;"></td><td id="t21"></td><td id="t22"></td><td id="t23" style="border-left:5px solid black;"></td><td id="t24"></td><td id="t25"></td><td id="t26" style="border-left:5px solid black;"></td><td id="t27"></td><td id="t28" style="border-right:5px solid black;"></td></tr><tr style="border-top:5px solid black;"><td id="t30" style="border-left:5px solid black;"></td><td id="t31"></td><td id="t32"></td><td id="t33" style="border-left:5px solid black;"></td><td id="t34"></td><td id="t35"></td><td id="t36" style="border-left:5px solid black;"></td><td id="t37"></td><td id="t38" style="border-right:5px solid black;"></td></tr><tr><td id="t40" style="border-left:5px solid black;"></td><td id="t41"></td><td id="t42"></td><td id="t43" style="border-left:5px solid black;"></td><td id="t44"></td><td id="t45"></td><td id="t46" style="border-left:5px solid black;"></td><td id="t47"></td><td id="t48" style="border-right:5px solid black;"></td></tr><tr><td id="t50" style="border-left:5px solid black;"></td><td id="t51"></td><td id="t52"></td><td id="t53" style="border-left:5px solid black;"></td><td id="t54"></td><td id="t55"></td><td id="t56" style="border-left:5px solid black;"></td><td id="t57"></td><td id="t58" style="border-right:5px solid black;"></td></tr><tr style="border-top:5px solid black;"><td id="t60" style="border-left:5px solid black;"></td><td id="t61"></td><td id="t62"></td><td id="t63" style="border-left:5px solid black;"></td><td id="t64"></td><td id="t65"></td><td id="t66" style="border-left:5px solid black;"></td><td id="t67"></td><td id="t68" style="border-right:5px solid black;"></td></tr><tr><td id="t70" style="border-left:5px solid black;"></td><td id="t71"></td><td id="t72"></td><td id="t73" style="border-left:5px solid black;"></td><td id="t74"></td><td id="t75"></td><td id="t76" style="border-left:5px solid black;"></td><td id="t77"></td><td id="t78" style="border-right:5px solid black;"></td></tr><tr style="border-bottom:5px solid black;"><td id="t80" style="border-left:5px solid black;"></td><td id="t81"></td><td id="t82"></td><td id="t83" style="border-left:5px solid black;"></td><td id="t84"></td><td id="t85"></td><td id="t86" style="border-left:5px solid black;"></td><td id="t87"></td><td id="t88" style="border-right:5px solid black;"></td></tr></table></p>';
+       	document.getElementById("result").innerHTML=x;
+       	for(i=0;i<9;i++)
+       	{ for(j=0;j<9;j++)
+          { x=document.getElementById("t"+i+j);
+   	   		x.innerHTML=ans[i][j];}}}
+    document.getElementById("solve").addEventListener("click",solve,false);
+    document.getElementById("reset").addEventListener("click",resf,false);
+    </script>
+</center></body>
+</html>
