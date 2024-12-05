@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Navigation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .sections-list {
+            margin-bottom: 20px;
+        }
+        .section-point {
+            margin-bottom: 10px;
+            cursor: pointer;
+            color: blue;
+            font-size: 1.2em;
+        }
+        .section-point:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Select Exam Section</h1>
+    <div class="sections-list">
+        <div class="section-point" data-section="MC">1. Multiple Choice Questions (MCQs)</div>
+        <div class="section-point" data-section="TF">2. True or False</div>
+        <div class="section-point" data-section="ESSAY">3. Essays</div>
+        <div class="section-point" data-section="FIB">4. Fill in the Blanks</div>
+    </div>
+    <div id="status"></div>
+<div id="cameraContainer">
+    <iframe src="/camera_feed/" title="Camera Feed" style="position: fixed; bottom: 10px; right: 10px; width: 250px; height: 200px; border: 0"  scrolling="no" allow="camera"></iframe>
+</div>
+
+    <script>
+        let recognitionActive = false;
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            document.getElementById('status').innerText = 'Speech Recognition API not supported in this browser.';
+            throw new Error('Speech Recognition API not supported');
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+	let faceNotDetected = false;
+        let alertInterval = null;
+
+	async function startFaceDetection() 
+	{
+  	  try 
+	  {
+	        const iframe = document.querySelector('#cameraContainer iframe');
+        	const videoStream = iframe.contentWindow.document.querySelector('video'); 
+
+	        const canvas = document.createElement('canvas');
+        	canvas.width = videoStream.videoWidth;
+        	canvas.height = videoStream.videoHeight;
+        	const context = canvas.getContext('2d');
+
+	        context.drawImage(videoStream, 0, 0, canvas.width, canvas.height);
+
+	        const imageBase64 = canvas.toDataURL('image/jpeg').split(',')[1];
+
+	        const response = await fetch('/face_detection/', 
+		   {
+        	    method: 'POST',
+            	    headers: {'Content-Type': 'application/octet-stream'},
+            	    body: imageBase64 
+		   });
+
+	        const faceData = await response.json();
+
+	        if (faceData && faceData.faceDetected) 
+		{
+        	    faceNotDetected = false;
+            	    clearInterval(alertInterval);
+        	} 
+	        else 
+		{
+            	    if (!faceNotDetected) 
+		    {	stopRecognition();
+                	faceNotDetected = true;
+                	alertInterval = setInterval(() => {
+                    		if (faceNotDetected) 
+				{	speak("Please ensure your face is visible on camera.").then(() => recognition.start());;
+                        		logEvent("Face not detected");}
+                	}, 10000); 
+            	     }
+        	}
+    	} 
+	catch (error) 
+	{
+	 stopRecognition();
+         console.error("Face Detection Error:", error);
+         speak("Face detection encountered an issue.").then(() => recognition.start());;
+	}
+       }
+
+
+	async function logEvent(message) {
+            try {
+                await fetch('/log_event/', 
+		   {  
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ event: message })
+                });
+            } 
+	    catch (error) 
+            {
+                console.error("Logging Error:", error);
+            }
+        }
+
+        setInterval(() => startFaceDetection(), 5000); 
+
+        const sections = [
+            { key: 'MC', text: 'multiple choice questions' },
+            { key: 'TF', text: 'true or false' },
+            { key: 'ESSAY', text: 'essays' },
+            { key: 'FIB', text: 'fill in the blanks' }
+        ];
+
+        function speak(text) {
+            recognitionActive = false;
+            return new Promise((resolve) => {
+                const synth = window.speechSynthesis;
+                const utterance = new SpeechSynthesisUtterance(text);
+		utterance.onend = () => { resolve(); };
+                synth.speak(utterance);
+            });
+        }
+	
+	 function stopRecognition() 
+	{
+            recognition.stop();
+        }
+	
+
+        function readSections() {
+            if (sections.length > 0) {
+                sections.forEach((section, index) => {
+                    setTimeout(() => {
+                        speak(`Section ${index + 1}: ${section.text}.`);
+                        if (index === sections.length - 1) {
+                            speak('Please say the section number or name to select.').then(()=>{
+			    recognitionActive = true;
+			    startRecognition();});
+                        }
+                    }, index * 3000); 
+                });
+            }
+        }
+
+        function handleVoiceCommand(command) {
+            recognition.stop();
+            command = command.toLowerCase();
+	    console.log(command);
+	    if (command.includes('end exam')) {
+                endExam();
+		return;
+            }
+	    else{
+            const numberMatch = command.match(/section\s?(\d+)/i);
+            if (numberMatch) {
+                const sectionNumber = parseInt(numberMatch[1]);
+                if (sectionNumber >= 1 && sectionNumber <= sections.length) {
+                    const selectedSection = sections[sectionNumber - 1];
+                    navigateToSection(selectedSection.key);
+                    return;
+                }
+            }
+	    
+
+            for (const section of sections) {
+                if (command.includes(section.text.toLowerCase())) {
+                    navigateToSection(section.key);
+                    return;
+                }
+            }
+
+            for (const section of sections) {
+                if (command.includes(section.key.toLowerCase())) {
+                    navigateToSection(section.key);
+                    return;
+                }
+            }
+	        
+            speak('Sorry, I did not understand that. Please try again.').then(()=>{
+	    recognitionActive=true;
+	    startRecognition();});
+	    
+        }
+	}
+
+	function endExam() {
+            fetch('/end_exam/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify({
+                    user_id: {{ user_id }}
+                })
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.failure) {
+                      document.getElementById('status').innerText = 'Exam could not be submitted, user not found.';
+                  } else {
+                      window.location.href = `/thankyou/?user_id={{ user_id }}`;
+                  }
+              });
+        }
+
+	function getCsrfToken() {
+            const cookies = document.cookie.split(';');
+            for (const cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'csrftoken') {
+                    return value;
+                }
+            }
+            return '';
+        }
+
+        function navigateToSection(sectionKey) {
+            const userId = new URLSearchParams(window.location.search).get('user_id');
+            if (!userId) {
+                alert('User ID not found. Please start from the registration page.');
+                return;
+            }
+
+            switch(sectionKey) {
+                case 'MC':
+                    window.location.href = `/mcq_exam_page/?user_id=${userId}&type=MC`;
+                    break;
+                case 'TF':
+                    window.location.href = `/tf_exam_page/?user_id=${userId}&type=TF`;
+                    break;
+                case 'ESSAY':
+                    window.location.href = `/essay_exam_page/?user_id=${userId}&type=ESSAY`;
+                    break;
+                case 'FIB':
+                    window.location.href = `/fib_exam_page/?user_id=${userId}&type=FIB`;
+                    break;
+                default:
+                    alert('Invalid section selected.');
+            }
+        }
+
+        recognition.addEventListener('result', (event) => {
+            const command = event.results[0][0].transcript.toLowerCase();
+            handleVoiceCommand(command);
+        });
+
+        recognition.addEventListener('end', () => {
+            if (recognitionActive) {
+                recognition.start();
+            }
+        });
+
+        function startRecognition() {
+            if (recognitionActive) {
+                recognition.start();
+            }
+        }
+
+        document.querySelectorAll('.section-point').forEach(element => {
+            element.addEventListener('click', () => {
+                const sectionKey = element.getAttribute('data-section');
+                navigateToSection(sectionKey);
+            });
+        });
+
+        window.onload = () => {
+	    recognitionActive = false;
+            readSections();
+            startRecognition();
+        };
+    </script>
+</body>
+</html>

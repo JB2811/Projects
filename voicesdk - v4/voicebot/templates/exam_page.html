@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examination Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+        }
+        .question-list {
+            width: 30%;
+            margin-right: 20px;
+        }
+        .question-content {
+            width: 70%;
+        }
+        .wcard {
+            border-width: 4px;
+            border-style: solid;
+            border-color: black;
+            padding: 20px;
+            background-color: #FAFAD2;
+            margin: 20px;
+            margin-right: 35px;
+        }
+        .abc {
+            padding: 20px;
+            margin: 20px;
+        }
+        .options-container {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Examination</h1>
+    <div>Participant ID: <span id="participantId">{{ user_id }}</span></div>
+    <hr>
+    <div class="container">
+        <div class="question-list">
+            <ul id="questions" class="wcard">
+            </ul>
+        </div>
+        <div class="question-content abc">
+            <div id="questionNumber" style="margin-bottom:15px"></div>
+            <div id="questionText" style="margin-bottom:15px"></div>
+            <div id="optionsContainer" class="options-container" style="display: none;"></div>
+            <textarea id="answerText" rows="10" cols="50" style="display: none;"></textarea><br><br>
+            <button id="nextQuestion">Next Question</button>
+        </div>
+    </div>
+    <div id="status"></div>
+<div id="cameraContainer">
+    <iframe src="/camera_feed/" title="Camera Feed" style="position: fixed; bottom: 10px; right: 10px; width: 250px; height: 200px; border: 0"  scrolling="no" allow="camera"></iframe>
+</div>
+
+    <script>
+
+	const ordinalMap = {"first": 1, "second": 2, "third": 3, "fourth": 4, "fifth": 5, "sixth": 6, "seventh": 7, "eighth": 8, "ninth": 9, "tenth": 10,"eleventh": 11, "twelfth": 12, "thirteenth": 13, "fourteenth": 14, "fifteenth": 15, "sixteenth": 16, "seventeenth": 17, "eighteenth": 18, "nineteenth": 19, "twentieth": 20,};
+
+	function convertOrdinalWords(input) {
+	    for (let word in ordinalMap) {
+        	const regex = new RegExp("\\b" + word + "\\b", "gi"); 
+		if (regex.test(input)) { 
+			return ordinalMap[word];         }
+    	     	}
+    	     return input;
+	}
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            document.getElementById('status').innerText = 'Speech Recognition API not supported in this browser.';
+            throw new Error('Speech Recognition API not supported');
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+	let faceNotDetected = false;
+        let alertInterval = null;
+
+	async function startFaceDetection() 
+	{
+  	  try 
+	  {
+	        const iframe = document.querySelector('#cameraContainer iframe');
+        	const videoStream = iframe.contentWindow.document.querySelector('video'); 
+
+	        const canvas = document.createElement('canvas');
+        	canvas.width = videoStream.videoWidth;
+        	canvas.height = videoStream.videoHeight;
+        	const context = canvas.getContext('2d');
+
+	        context.drawImage(videoStream, 0, 0, canvas.width, canvas.height);
+
+	        const imageBase64 = canvas.toDataURL('image/jpeg').split(',')[1];
+
+	        const response = await fetch('/face_detection/', 
+		   {
+        	    method: 'POST',
+            	    headers: {'Content-Type': 'application/octet-stream'},
+            	    body: imageBase64 
+		   });
+
+	        const faceData = await response.json();
+
+	        if (faceData && faceData.faceDetected) 
+		{
+        	    faceNotDetected = false;
+            	    clearInterval(alertInterval);
+        	} 
+	        else 
+		{
+            	    if (!faceNotDetected) 
+		    {	stopRecognition();
+                	faceNotDetected = true;
+                	alertInterval = setInterval(() => {
+                    		if (faceNotDetected) 
+				{	speak("Please ensure your face is visible on camera.").then(() => recognition.start());;
+                        		logEvent("Face not detected");}
+                	}, 10000); 
+            	     }
+        	}
+    	} 
+	catch (error) 
+	{
+	 stopRecognition();
+         console.error("Face Detection Error:", error);
+         speak("Face detection encountered an issue.").then(() => recognition.start());;
+	}
+       }
+
+
+	async function logEvent(message) {
+            try {
+                await fetch('/log_event/', 
+		   {  
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ event: message })
+                });
+            } 
+	    catch (error) 
+            {
+                console.error("Logging Error:", error);
+            }
+        }
+
+        setInterval(() => startFaceDetection(), 5000); 
+
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let recognitionActive = false;
+        let answers = {};
+
+        let currentQuestionType = ''; 
+	let questionindex = 1;
+	
+        function loadQuestions() {
+            
+                questions = {{questions|safe}};
+		console.log(questions);
+                const questionList = document.getElementById('questions');
+                questionList.innerHTML = '';
+                questions.forEach((question) => {
+                    const li = document.createElement('li');
+                    li.style.padding = "8px";
+                    li.style.fontStyle = "Roboto";
+                    li.style.textAlign = "center";
+                    li.innerText = `Question `+(questionindex);
+                    li.dataset.id = question.id;
+                    li.onclick = () => loadQuestion(li.innerText.slice(9));
+		    questionindex++;
+                    questionList.appendChild(li);
+                });
+
+                if (questions.length > 0) {
+                    loadQuestion(1);
+                }
+            }
+
+        function loadQuestion(i) {
+            const question = questions[i-1];
+
+            if (question) {
+                document.getElementById('questionNumber').innerText = `Question `+i;
+                document.getElementById('questionText').innerText = question.question_text;
+
+                const previousAnswer = answers[question.id] || '';
+                document.getElementById('answerText').value = previousAnswer;
+
+                currentQuestionType = question.question_type;
+
+                if (question.question_type === 'MC') {
+                    renderOptions(question.options, previousAnswer);
+                } else if (question.question_type === 'TF') {
+                    renderTrueFalseOptions(previousAnswer);
+                } else {
+                    document.getElementById('answerText').style.display = 'block'; 
+                    document.getElementById('optionsContainer').style.display = 'none';                 }
+
+                currentQuestionIndex = questions.indexOf(question);
+                stopRecognition();
+                
+                let speakText = `Question `+i+`: ${question.question_text}`;
+                if (question.question_type === 'MC') {
+                    speakText += `. The options are: `;
+                    question.options.forEach((option, index) => {
+                        speakText += `${String.fromCharCode(65 + index)}. ${option}. `;
+                    });
+                    speakText += 'Please say the option letter corresponding to your answer.';
+                } else if (question.question_type === 'TF') {
+                    speakText += `. Please say True or False.`;
+                }
+
+                speak(speakText);
+            }
+        }
+
+        function renderOptions(options, previousAnswer) {
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = ''; 
+
+            options.forEach((option, index) => { 
+                const label = document.createElement('label');
+                const input = document.createElement('input');
+                input.type = 'radio';
+                input.name = 'mcqOptions';
+                input.value = option;
+
+                if (option === previousAnswer) {
+                    input.checked = true;
+                }
+
+                label.appendChild(input);
+                label.appendChild(document.createTextNode(`${String.fromCharCode(65 + index)}. ${option}`)); // *** Modified: Added option letter ***
+                optionsContainer.appendChild(label);
+            });
+
+            optionsContainer.style.display = 'block'; // Show options
+            document.getElementById('answerText').style.display = 'none'; // Hide text area
+        }
+
+        function renderTrueFalseOptions(previousAnswer) {
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = ''; // Clear existing options
+
+            const trueLabel = document.createElement('label');
+            const trueInput = document.createElement('input');
+            trueInput.type = 'radio';
+            trueInput.name = 'tfOptions';
+            trueInput.value = 'True';
+            trueLabel.appendChild(trueInput);
+            trueLabel.appendChild(document.createTextNode('True'));
+            optionsContainer.appendChild(trueLabel);
+
+            const falseLabel = document.createElement('label');
+            const falseInput = document.createElement('input');
+            falseInput.type = 'radio';
+            falseInput.name = 'tfOptions';
+            falseInput.value = 'False';
+            falseLabel.appendChild(falseInput);
+            falseLabel.appendChild(document.createTextNode('False'));
+            optionsContainer.appendChild(falseLabel);
+
+            if (previousAnswer) {
+                const inputToCheck = previousAnswer === 'True' ? trueInput : falseInput;
+                inputToCheck.checked = true;
+            }
+
+            optionsContainer.style.display = 'block'; 
+            document.getElementById('answerText').style.display = 'none'; 
+        }
+
+        function speak(text) {
+            recognitionActive = false;
+            return new Promise((resolve) => {
+                const synth = window.speechSynthesis;
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.onend = () => {
+                    recognitionActive = true;
+                    startRecognition();
+                    resolve();
+                };
+                synth.speak(utterance);
+            });
+        }
+
+        function handleVoiceCommand(command) {
+            
+            if (command.includes('repeat question')) {
+                speak(`${document.getElementById('questionNumber').innerText}: ${document.getElementById('questionText').innerText}`);
+                if (currentQuestionType === 'MC') { 
+                    const optionsText = questions[currentQuestionIndex].options.map((opt, idx) => `${String.fromCharCode(65 + idx)}. ${opt}`).join(', ');
+                    speak(`Options are: ${optionsText}`);
+                } else if (currentQuestionType === 'TF') { 
+                    speak('Options are: True and False.');
+                }
+            } else if (command.includes('next question')) {
+                saveAnswer();
+		if (currentQuestionIndex + 1 < questions.length) {
+	                document.getElementById('answerText').value = "";
+		}
+                loadNextQuestion();
+            } else if (command.includes('end exam')) {
+                endExam();
+            } else if (command.includes('end section')) {
+                endSection();
+            } else if (command.match(/go to the .+ question/i)||command.match(/go to .+ question/i)) {
+	        numberString = command.replace(/go to/i, '').trim()||command.replace(/go to the/i, '').trim();
+		console.log(numberString);
+        	const questionNumber = convertOrdinalWords(numberString); 
+
+	        if (questionNumber && questionNumber >= 1 && questionNumber <= questions.length) {
+        	    speak(`Going to question ${questionNumber}`).then(()=>{
+		    loadQuestion(questionNumber);});
+        	} else {
+            	    speak("Sorry, I couldn't find that question.");
+        	}
+    	     } else {
+
+		
+
+                if (currentQuestionType === 'MC') { 
+                    const optionMatch = command.match(/option\s?([a-z])/i) || command.match(/^([a-z])$/i);
+                    if (optionMatch) {
+                        const optionLetter = optionMatch[1].toUpperCase();
+                        const optionIndex = optionLetter.charCodeAt(0) - 65; 
+                        if (optionIndex >= 0 && optionIndex < questions[currentQuestionIndex].options.length) {
+                            const selectedOption = questions[currentQuestionIndex].options[optionIndex];
+                            const radioButton = document.querySelector(`input[name="mcqOptions"][value="${selectedOption}"]`);
+                            if (radioButton) {
+                                radioButton.checked = true; 
+                                saveAnswer(); 
+                                speak(`You selected option ${optionLetter}.`);
+                            }
+                        }
+                    }
+                } else if (currentQuestionType === 'TF') {
+                    if (command.includes('true')) {
+                        const radioButton = document.querySelector('input[name="tfOptions"][value="True"]');
+                        if (radioButton) {
+                            radioButton.checked = true;
+                            saveAnswer();
+                            speak('You selected True.');
+                        }
+                    } else if (command.includes('false')) {
+                        const radioButton = document.querySelector('input[name="tfOptions"][value="False"]');
+                        if (radioButton) {
+                            radioButton.checked = true;
+                            saveAnswer();
+                            speak('You selected False.');
+                        }
+                    }
+                } else {
+                    document.getElementById('answerText').value += " " + command;
+                    saveAnswer();
+                }
+            
+	    }
+        }
+
+        function saveAnswer() {
+	    
+            const answerText = document.getElementById('answerText').value;
+            const selectedOption = document.querySelector('input[name="mcqOptions"]:checked')?.value || 
+                                   document.querySelector('input[name="tfOptions"]:checked')?.value;
+
+            const answer = selectedOption || answerText;
+
+	    console.log(selectedOption);
+
+            if (questions[currentQuestionIndex]) {
+                fetch('/submit_answer/', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken()},
+                    body: JSON.stringify({
+                        user_id: {{ user_id }},
+                        question_id: questions[currentQuestionIndex].id,
+                        answer_text: answer
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Answer saved successfully.');
+                        answers[questions[currentQuestionIndex].id] = answer; // Store answer in local state
+                    } else {
+                        console.error('Failed to save answer:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error saving answer:', error);
+                });
+            } else {
+                console.error('Invalid data: currentQuestionId or answerText is missing.');
+            }
+        }
+
+        function loadNextQuestion() {
+            const nextIndex = currentQuestionIndex + 1;
+            if (nextIndex < questions.length) {
+                loadQuestion(nextIndex+1);
+            } else {
+                speak('End of section!');
+            }
+        }
+
+        function endExam() {
+            fetch('/end_exam/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify({
+                    user_id: {{ user_id }}
+                })
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.failure) {
+                      document.getElementById('status').innerText = 'Exam could not be submitted, user not found.';
+                  } else {
+                      window.location.href = `/thankyou/?user_id={{ user_id }}`;
+                  }
+              });
+        }
+
+	function endSection() {
+              window.location.href = `/home_page/?user_id={{ user_id }}`;
+        }
+
+        function getCsrfToken() {
+            const cookies = document.cookie.split(';');
+            for (const cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'csrftoken') {
+                    return value;
+                }
+            }
+            return '';
+        }
+
+        function startRecognition() {
+            if (recognitionActive) {
+                recognition.start();
+            }
+        }
+
+        function stopRecognition() {
+            recognition.stop();
+        }
+
+        recognition.onresult = (event) => {
+            const command = event.results[0][0].transcript.toLowerCase();
+            handleVoiceCommand(command);
+        };
+
+        recognition.onend = () => {
+            startRecognition();
+        };
+
+        // Initialize
+        loadQuestions();
+    </script>
+</body>
+</html>

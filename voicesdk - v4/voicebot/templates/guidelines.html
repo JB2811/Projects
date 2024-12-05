@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Guidelines</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .guidelines-list {
+            margin-bottom: 20px;
+        }
+        .guidelines-point {
+            margin-bottom: 10px;
+            cursor: pointer;
+            color: blue;
+        }
+        .guidelines-point:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Exam Guidelines</h1>
+    <div class="guidelines-list">
+        <div class="guidelines-point" data-point="1">1. Be sure to hear each question carefully.</div>
+        <div class="guidelines-point" data-point="2">2. Say 'repeat question' to repeat the question.</div>
+        <div class="guidelines-point" data-point="3">3. Say 'next question' to proceed to the next question.</div>
+        <div class="guidelines-point" data-point="4">4. To start the exam, say 'start exam'.</div>
+	<div class="guidelines-point" data-point="5">5. To repeat all the guidelines say 'repeat all guidelines'.</div>
+	<div class="guidelines-point" data-point="6">6. To repeat a particular guideline say 'repeat nth guideline' to repeat the nth guideline.</div>
+	<div class="guidelines-point" data-point="7">7. Say 'end exam' to end the exam after attempting the questions.</div>
+	<div class="guidelines-point" data-point="8">8. Say 'end section' to end the section after attempting the questions in a section.</div>
+    </div>
+    <div id="status"></div>
+<div id="cameraContainer">
+    <iframe src="/camera_feed/" title="Camera Feed" style="position: fixed; bottom: 10px; right: 10px; width: 250px; height: 200px; border: 0"  scrolling="no" allow="camera"></iframe>
+</div>
+
+    <script>
+	
+	const ordinalMap = {"first": 1, "second": 2, "third": 3, "fourth": 4, "fifth": 5, "sixth": 6, "seventh": 7, "eighth": 8, "ninth": 9, "tenth": 10,"eleventh": 11, "twelfth": 12, "thirteenth": 13, "fourteenth": 14, "fifteenth": 15, "sixteenth": 16, "seventeenth": 17, "eighteenth": 18, "nineteenth": 19, "twentieth": 20,};
+
+	function convertOrdinalWords(input) {
+	    for (let word in ordinalMap) {
+        	const regex = new RegExp("\\b" + word + "\\b", "gi"); 
+		if (regex.test(input)) { 
+			return ordinalMap[word];         }
+    	     	}
+    	     return input;
+	}
+	
+
+	let recognitionActive = false;
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            document.getElementById('status').innerText = 'Speech Recognition API not supported in this browser.';
+            throw new Error('Speech Recognition API not supported');
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+
+        const guidelines = [
+            'Be sure to hear each question carefully.',
+            'Say repeat question to repeat the question.',
+            'Say next question to proceed to the next question.',
+	    'To start the exam, say start exam.',
+	    'To repeat all the guidelines say repeat all guidelines.',
+	    'To repeat a particular guideline say repeat nth guideline to repeat the nth guideline',
+	    'Say end exam to end the exam after attempting the questions.',
+	    'Say end section to end the section after attempting the questions in a section'
+        ];
+
+        let currentGuidelineIndex = -1;
+
+        function speak(text) 
+	{
+            return new Promise((resolve) => {
+                const synth = window.speechSynthesis;
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.onend = resolve;
+                synth.speak(utterance);
+            });
+        }
+
+        function readGuidelines() 
+	{   if (guidelines.length > 0) 
+	    {
+                guidelines.forEach((guideline, index) => {
+                    setTimeout(() => {
+                        speak(`Guideline ${index + 1}: ${guideline}`);
+			if(index == guidelines.length - 1)
+		   	{ 	recognitionActive = true;
+				startRecognition();}
+                    }, index * 5000); 
+                });
+            }
+        }
+
+        function handleVoiceCommand(command) 
+	{   recognition.stop();
+            if (command.includes('repeat all guidelines')) 
+	    {	recognitionActive=false;
+                readGuidelines();
+            } 
+	    else if (command.includes('start exam')) 
+	    {
+                window.location.href = `/home_page/?user_id=${new URLSearchParams(window.location.search).get('user_id')}`;
+            }
+	    else if (command.match(/repeat the .+ guideline/i)||command.match(/repeat .+ guideline/i)) {
+	        numberString = command.replace(/repeat/i, '').trim()||command.replace(/repeat the/i, '').trim();
+		console.log(numberString);
+        	const guidelineNumber = convertOrdinalWords(numberString); 
+
+	        if (guidelineNumber && guidelineNumber >= 1 && guidelineNumber <= guidelines.length) {
+        	    speak(`Guideline ${guidelineNumber}: ${guidelines[guidelineNumber-1]}`)
+        	} else {
+            	    speak("Sorry, I couldn't find that question.");
+        	}
+    	     }
+        }
+
+        recognition.addEventListener('result', (event) => {
+            const transcript = event.results[0][0].transcript.toLowerCase();
+            handleVoiceCommand(transcript);
+        });
+
+        recognition.addEventListener('end', () => {
+            startRecognition();
+        });
+
+	function startRecognition()
+	{ if(recognitionActive)
+	  { recognition.start();}}
+
+        window.onload = () => {
+            readGuidelines(); 
+            startRecognition();
+	};
+    </script>
+</body>
+</html>

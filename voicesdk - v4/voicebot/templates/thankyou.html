@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thank You</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #4CAF50;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Thank You!</h1>
+    <p id="thankYouMessage">Your exam has been successfully submitted.</p>
+    <p id="supportMessage">We appreciate your effort and participation. If you need further assistance or have any questions, please contact support.</p>
+
+    <script>
+        // Check for SpeechSynthesis API support
+        const synth = window.speechSynthesis;
+
+        function speak(text) {
+            return new Promise((resolve) => {
+                if (synth.speaking) {
+                    console.error('SpeechSynthesis is already speaking.');
+                    resolve();
+                }
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.onend = resolve;
+                utterance.onerror = (event) => {
+                    console.error('SpeechSynthesis error:', event);
+                    resolve();
+                };
+                synth.speak(utterance);
+            });
+        }
+
+        window.addEventListener('load', () => {
+            // Read the content of the page upon loading
+            const thankYouText = document.getElementById('thankYouMessage').innerText;
+            const supportText = document.getElementById('supportMessage').innerText;
+
+            speak(`Thank you! ${thankYouText} ${supportText}`);
+        });
+    </script>
+</body>
+</html>

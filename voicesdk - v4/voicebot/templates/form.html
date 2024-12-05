@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice-Activated Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        label, input {
+            display: block;
+            margin-bottom: 10px;
+        }
+        #status {
+            font-size: 1.2em;
+            margin-top: 20px;
+            color: green;
+        }
+	.wbgg {
+            background-image: url("https://i.ibb.co/dQ1rJZk/35481379-v915-wit-010-e.jpg");
+            background-size: cover;
+            height: 100vh;
+	    margin : 0px;
+            padding: 70px;
+	    padding-top : 200px
+        }
+
+        .wcard {
+            border-width: 4px;
+            border-style: solid;
+            border-color: black;
+	    width : 350px;
+            padding: 20px;
+            background-color: #FAFAD2;
+        }
+
+        .heading {
+            font-family: "Roboto";
+            font-size: 26px;
+            font-weight: bold;
+        }
+
+        .namee {
+            font-family: "Roboto";
+        }
+
+    </style>
+</head>
+<body>
+    <div class="d-flex flex-column justify-content-center wbgg">
+        <center>
+            <div class="wcard">
+                <h1 class="heading">Voice-Activated Form</h1>
+                <form id="userForm">
+                    {% csrf_token %}
+                    <label for="name" class="namee">Name:</label>
+                    <input type="text" id="name" name="name" aria-label="Name">
+                    <label for="registrationNumber" class="namee">Registration Number:</label>
+                    <input type="text" id="registrationNumber" name="registrationNumber" aria-label="Registration Number">
+                </form>
+                <div id="status"></div>
+            </div>
+        </center>
+	<div id="cameraContainer">
+    <iframe src="/camera_feed/" title="Camera Feed" style="position: fixed; bottom: 10px; right: 10px; width: 250px; height: 200px; border: 0"  scrolling="no" allow="camera"></iframe>
+	</div> 
+    </div>
+
+    <script>
+        // Check for SpeechRecognition API support
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+	let faceNotDetected = false;
+        let alertInterval = null;
+
+        if (!SpeechRecognition) 
+	{
+            document.getElementById('status').innerText = 'Speech Recognition API not supported in this browser.';
+            throw new Error('Speech Recognition API not supported');
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.interimResults = false; // Only final results are needed
+        recognition.lang = 'en-US';
+        recognition.continuous = false;
+
+        const synth = window.speechSynthesis;
+
+        let currentField = '';
+        let lastTranscript = '';
+        let waitingForResponse = false;
+        let retryInterval = null;
+
+
+	async function startFaceDetection() 
+	{
+  	  try 
+	  {
+	        const iframe = document.querySelector('#cameraContainer iframe');
+        	const videoStream = iframe.contentWindow.document.querySelector('video'); 
+
+	        const canvas = document.createElement('canvas');
+        	canvas.width = videoStream.videoWidth;
+        	canvas.height = videoStream.videoHeight;
+        	const context = canvas.getContext('2d');
+
+	        context.drawImage(videoStream, 0, 0, canvas.width, canvas.height);
+
+	        const imageBase64 = canvas.toDataURL('image/jpeg').split(',')[1];
+
+	        const response = await fetch('/face_detection/', 
+		   {
+        	    method: 'POST',
+            	    headers: {'Content-Type': 'application/octet-stream'},
+            	    body: imageBase64 
+		   });
+
+	        const faceData = await response.json();
+
+	        if (faceData && faceData.faceDetected) 
+		{
+        	    faceNotDetected = false;
+            	    clearInterval(alertInterval);
+        	} 
+	        else 
+		{
+            	    if (!faceNotDetected) 
+		    {	stopRecognition();
+                	faceNotDetected = true;
+                	alertInterval = setInterval(() => {
+                    		if (faceNotDetected) 
+				{	speak("Please ensure your face is visible on camera.").then(() => recognition.start());;
+                        		logEvent("Face not detected");}
+                	}, 10000); 
+            	     }
+        	}
+    	} 
+	catch (error) 
+	{
+	 stopRecognition();
+         console.error("Face Detection Error:", error);
+         speak("Face detection encountered an issue.").then(() => recognition.start());;
+	}
+       }
+
+
+	async function logEvent(message) {
+            try {
+                await fetch('/log_event/', 
+		   {  
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ event: message })
+                });
+            } 
+	    catch (error) 
+            {
+                console.error("Logging Error:", error);
+            }
+        }
+
+        setInterval(() => startFaceDetection(), 5000); 
+
+
+        function speak(text) 
+	{
+            return new Promise((resolve) => {
+                if (synth.speaking) {
+                    console.error('SpeechSynthesis is already speaking.');
+                    resolve();
+                }
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.onend = resolve;
+                utterance.onerror = (event) => {
+                    console.error('SpeechSynthesis error:', event);
+                    resolve();
+                };
+                synth.speak(utterance);
+            });
+        }
+
+        // Function to start retry mechanism for each section
+        function startRetry(section) 
+	{
+            stopRetry(); // Clear any existing retry intervals
+            retryInterval = setInterval(() => {
+                if (waitingForResponse) 
+		{
+                    speak(`Provide an input for your ${section}`).then(() => recognition.start());
+                }
+            }, 10000); // Retry every 10 seconds
+        }
+
+        // Function to stop retry mechanism
+        function stopRetry() 
+	{
+            clearInterval(retryInterval);
+        }
+
+        // Start recognition process
+        async function startRecognition() 
+	{   await speak('Important guideline that the applicant needs to follow throughout the exam, upon the system has completed the speech after asking a question, kindly provide a clear, audible answer after waiting for 2 to 3 seconds, we repeat 2 to 3 seconds after any question has been asked to provide an answer. This applies to form filling, examination answers and navigation questions');
+            document.getElementById('status').innerText = 'Ready to start.';
+            await askForName();
+        }
+
+        // Ask for the name until valid input is received
+        async function askForName() 
+	{
+            await speak('What is your name?');
+            recognition.start();
+            currentField = 'name';
+            waitingForResponse = true;
+            startRetry('name');
+        }
+
+        // Ask for the registration number until valid input is received
+        async function askForRegistrationNumber() 
+	{
+            await speak('What is your registration number?');
+            recognition.start();
+            currentField = 'registrationNumber';
+            waitingForResponse = true;
+            startRetry('registration number');
+        }
+
+        function stopRecognition() 
+	{
+            recognition.stop();
+            document.getElementById('status').innerText = 'Recognition stopped.';
+            stopRetry(); // Stop retry when recognition is stopped
+        }
+
+        recognition.addEventListener('result', async (event) => {
+	    
+            waitingForResponse = false;
+	    stopRetry();
+
+            const transcript = event.results[0][0].transcript.toLowerCase();
+            console.log('Recognized text:', transcript);
+
+            if (currentField === 'name') 
+	    {
+                lastTranscript = transcript; // Store the latest transcript
+                document.getElementById('name').value = transcript;
+		waitingForResponse = true;
+		currentField = 'confirmName';
+		speak(`You said your name is ${transcript}. Is that correct?`).then(() => recognition.start());
+
+		nameInterval = setInterval(() => {
+                		if (waitingForResponse) 
+				{
+                    			speak(`You said your name is ${transcript}. Is that correct?`).then(() => recognition.start());
+                		}
+            		       }, 10000);
+
+            } 
+
+	    else if (currentField === 'confirmName') 
+	    {
+                if (transcript.includes('yes')) 
+		{   
+		    clearInterval(nameInterval);
+                    await askForRegistrationNumber(); // Proceed to ask for registration number
+                } 
+		else if (transcript.includes('no')) 
+		{
+                    clearInterval(nameInterval);
+		    await askForName(); // Repeat asking for name
+                }
+		else
+		{ waitingForResponse = true;}
+	
+            } 
+	    
+            else if (currentField === 'registrationNumber') 
+	    {
+                lastTranscript = transcript; // Store the latest transcript
+                document.getElementById('registrationNumber').value = transcript;
+		currentField = 'confirmRegistrationNumber';
+                waitingForResponse = true;
+                speak(`You said your registration number is ${transcript}. Is that correct?`).then(() => recognition.start());
+
+                regInterval = setInterval(() => {
+                		if (waitingForResponse) 
+				{
+                    			speak(`You said your Registration number is ${transcript}. Is that correct?`).then(() => recognition.start());
+                		}
+            		       }, 10000);
+
+            } 
+
+	    else if (currentField === 'confirmRegistrationNumber') 
+	    {
+                if (transcript.includes('yes')) 
+		{
+		    clearInterval(regInterval);
+                    currentField = '';
+                    stopRecognition();
+
+                    // Submit the form data to the backend
+                    const formData = new FormData(document.getElementById('userForm'));
+                    try 
+		    {
+                         const response = await fetch('/submit_form/', { method: 'POST', body: formData,});
+                         const result = await response.json();
+                         if (result.success) 
+			 {
+                            document.getElementById('status').innerText = 'Form submitted successfully!';
+
+                            // Ask if user is ready to start the exam
+                            askToStartExam(result.pk);
+                         } 
+			 
+			 else 
+			 {
+                            document.getElementById('status').innerText = 'Form submission failed.';
+                         }
+                    } 
+		    catch (error) 
+		    {
+                        console.error('Error:', error);
+                        document.getElementById('status').innerText = 'An error occurred while submitting the form.';
+                    }
+                } 
+		
+		else if (transcript.includes('no')) 
+		{   
+		    clearInterval(regInterval);
+                    await askForRegistrationNumber();
+                }
+		else
+		{ waitingForResponse = true;}
+
+            }
+        });
+
+        // Event to handle errors
+        recognition.addEventListener('error', (event) => {
+            console.error('SpeechRecognition error:', event);
+            document.getElementById('status').innerText = 'Speech recognition error.';
+	    recognition.start();
+        });
+
+        function askToStartExam(userId) 
+	{
+            waitingForResponse = true;
+            speak('Are you ready to start the exam?').then(() => {
+                recognition.start();
+                examInterval = setInterval(() => {
+                    if (waitingForResponse) 
+		    {
+                        speak('Are you ready to start the exam?').then(() => recognition.start());
+                    }
+                }, 10000); // Repeat every 10 seconds if no response
+            });
+
+            // Handle the response
+            recognition.addEventListener('result', async (event) => {
+                const transcript = event.results[0][0].transcript.toLowerCase();
+                console.log('Exam start response:', transcript);
+
+                if (transcript.includes('yes')) 
+		{
+                    clearInterval(examInterval);
+                    waitingForResponse = false;
+                    window.location.href = `/guidelines/?user_id=${userId}`; // Redirect to exam page with user ID
+                } 
+		else if (transcript.includes('no')) 
+		{
+                    clearInterval(examInterval);
+                    waitingForResponse = true;
+                    document.getElementById('status').innerText = 'You can start the exam when you are ready.';
+                    speak('You can start the exam when you are ready.').then(() => {
+                        askToStartExam(userId); // Repeat asking if needed
+                    });
+                }
+		else
+		{ waitingForResponse=true;}
+            });
+        }
+
+        // Start the process immediately upon page click
+        window.addEventListener('click', () => {
+            startRecognition();
+        });
+    </script>
+</body>
+</html>

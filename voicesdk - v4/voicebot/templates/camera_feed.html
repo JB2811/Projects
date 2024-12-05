@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Feed</title>
+    <style>
+       
+        #videoElement {
+            width: 250px;
+            height: 200px;
+	    border: 2px solid black;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+
+    <div>
+	    <video id="videoElement" autoplay playsinline></video>
+    </div>
+	
+    <script>
+        // Initialize camera feed
+        const videoElement = document.getElementById('videoElement');
+
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                videoElement.srcObject = stream;
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                alert('Camera access is required for this application.');
+            }
+        }
+
+        startCamera();
+    </script>
+</body>
+</html>
