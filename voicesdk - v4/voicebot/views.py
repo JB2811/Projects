@@ -24,7 +24,7 @@ from azure.cognitiveservices.vision.face.models import (
     RecognitionModel,
 )
 
-FACE_API_KEY = '6vFAbJW01YLzGfbiqJJFWOUtk4Ve53HFUdH9CiqjJjzrtxjcLxBTJQQJ99AJACGhslBXJ3w3AAAKACOG7cXC'
+FACE_API_KEY = 'XXXXX'
 FACE_API_URL = 'https://facevoicesdk.cognitiveservices.azure.com/'  
 
 face_client = FaceClient(FACE_API_URL, CognitiveServicesCredentials(FACE_API_KEY))
